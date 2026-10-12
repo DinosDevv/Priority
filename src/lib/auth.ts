@@ -1,3 +1,4 @@
+import { clearReminderNotifications } from './notifications';
 import { supabase } from './supabase';
 
 export async function sendEmailCode(email: string): Promise<void> {
@@ -14,6 +15,7 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
 }
 
 export async function signOut(): Promise<void> {
+  await clearReminderNotifications().catch(() => {});
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }

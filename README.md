@@ -17,6 +17,7 @@ The schema, indexes and RLS policies are in [`supabase/migrations/`](supabase/mi
 
 1. `20261012000000_init.sql`: tables and RLS
 2. `20261013000000_area_ceiling.sql`: optional weekly ceiling per area
+3. `20261014000000_reminders.sql`: reminders for the Plan tab
 
 **Option A: SQL Editor (simplest)**
 Open **SQL Editor → New query**, paste each file's contents in order and click **Run**.
@@ -94,6 +95,15 @@ If the app shows a red screen about missing Supabase variables, check `.env` and
 npx expo start -c
 ```
 
+## Reminders & alerts
+
+The **Plan** tab holds upcoming things like "Driving lesson tomorrow 10:00". Each reminder can have an area, planned minutes and an alert (at the time, 15 min, 1 h or 1 day before).
+
+- **Permission:** the phone asks for notification permission the first time you save a reminder with an alert. If you deny it, reminders are still saved, but no alerts fire. You can turn notifications on later in your phone's settings.
+- **Expo Go:** during development, the permission belongs to the Expo Go app, and alerts show Expo's icon.
+- **How alerts are scheduled:** they're local notifications. The phone schedules them itself, with no server or push service. They're rebuilt from your reminder list when the app starts and whenever the Plan tab opens. Signing out clears them.
+- **Done:** marking a reminder Done when it has an area opens the log sheet with its planned minutes pre-filled, so the time counts toward that area's floor.
+
 ## Development
 
 ```bash
@@ -115,12 +125,14 @@ src/
   app/                 Expo Router routes
     _layout.tsx        session gate: sign-in vs tabs
     sign-in.tsx        email → 6-digit code
-    (tabs)/            Log (index), Week, Areas
-  components/          LogSheet, AreaForm, TimeDonut, ProgressBar, AlertCard, Button
+    (tabs)/            Log (index), Plan, Week, Areas
+  components/          LogSheet, ReminderSheet, AreaForm, TimeDonut, ProgressBar, AlertCard, Button
   lib/
     supabase.ts        client (AsyncStorage session, AppState auto-refresh)
     auth.ts, db.ts     the only modules that call Supabase
     stats.ts           pure week stats + alert logic (unit-tested)
+    reminders.ts       pure reminder grouping + alert schedule (unit-tested)
+    notifications.ts   the only module that touches expo-notifications
     session.tsx        session context
   types/db.ts          table types
 supabase/migrations/   SQL schema + RLS

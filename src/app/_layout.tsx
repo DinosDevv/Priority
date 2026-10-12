@@ -1,13 +1,15 @@
 import '../global.css';
 
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { onReminderTapped, setupNotifications, syncAllReminders } from '@/lib/notifications';
 import { SessionProvider, useSession } from '@/lib/session';
 
 SplashScreen.preventAutoHideAsync();
+setupNotifications();
 
 export default function RootLayout() {
   return (
@@ -20,10 +22,18 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { session, loading } = useSession();
+  const userId = session?.user.id;
 
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync();
   }, [loading]);
+
+  // Reschedule alerts from the server list and open Plan when an alert is tapped.
+  useEffect(() => {
+    if (!userId) return;
+    syncAllReminders().catch(() => {});
+    return onReminderTapped(() => router.push('/plan'));
+  }, [userId]);
 
   if (loading) return null;
 

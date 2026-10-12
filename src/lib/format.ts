@@ -25,11 +25,16 @@ export function formatProgress(area: Area, progress: number): string {
     : `${formatMinutes(progress)}/${formatMinutes(area.floor_value)}`;
 }
 
+/** "14:05" in Athens time. */
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString('en-GB', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' });
+}
+
 /** "Today 14:05", "Yesterday 09:10" or "Mon 12 Oct", in Athens time. */
 export function formatLogTime(iso: string, now: Date): string {
   const date = new Date(iso);
   const day = formatDay(date);
-  const time = date.toLocaleTimeString('en-GB', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' });
+  const time = formatTime(date);
   if (day === formatDay(now)) return `Today ${time}`;
   if (day === formatDay(new Date(now.getTime() - 24 * 60 * 60 * 1000))) return `Yesterday ${time}`;
   return day;

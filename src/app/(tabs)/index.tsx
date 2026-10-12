@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { LogSheet } from '@/components/LogSheet';
-import { deleteLog, listAreas, listLogsSince } from '@/lib/db';
-import { errorMessage, formatLogTime, formatMinutes, formatProgress } from '@/lib/format';
+import { deleteLog, listAreas, listLogsSince, listOpenReminders } from '@/lib/db';
+import { errorMessage, formatLogTime, formatMinutes, formatProgress, formatTime } from '@/lib/format';
 import { DEFAULT_AREA_COLOR } from '@/lib/palette';
-import { computeAlerts, computeWeekStats, statsWindowStart } from '@/lib/stats';
+import { computeAlerts, computeWeekStats, dayKey, statsWindowStart } from '@/lib/stats';
 import { useFocusLoad } from '@/lib/use-focus-load';
 import type { Area, Log } from '@/types/db';
 
@@ -16,7 +16,11 @@ const UNDO_MS = 5000;
 
 async function loadLogScreen() {
   const now = new Date();
-  const [areas, logs] = await Promise.all([listAreas(), listLogsSince(statsWindowStart(now))]);
+  const [areas, logs, reminders] = await Promise.all([
+    listAreas(),
+    listLogsSince(statsWindowStart(now)),
+    listOpenReminders(),
+  ]);
   const neglected = new Set(
     computeAlerts(areas, logs, now)
       .filter((a) => a.kind === 'neglect')
@@ -28,6 +32,7 @@ async function loadLogScreen() {
     tiles: computeWeekStats(areas, logs, now).areas.map((s) => ({ ...s, neglected: neglected.has(s.area.id) })),
     recent: logs.slice(0, RECENT_COUNT),
     lastEnergy: logs.find((l) => l.energy != null)?.energy ?? DEFAULT_ENERGY,
+    today: reminders.filter((r) => dayKey(new Date(r.due_at)) === dayKey(now)),
   };
 }
 
@@ -74,6 +79,19 @@ export default function LogScreen() {
         )}
 
         {(error ?? actionError) && <Text className="text-rose-400">{error ?? actionError}</Text>}
+
+        {data && data.today.length > 0 && (
+          <Link href="/plan" asChild>
+            <Pressable className="gap-1 rounded-2xl bg-slate-900 p-4 active:opacity-80">
+              <Text className="text-sm text-slate-400">Today</Text>
+              {data.today.map((r) => (
+                <Text key={r.id} className="text-base text-slate-100" numberOfLines={1}>
+                  <Text className="font-semibold">{formatTime(new Date(r.due_at))}</Text> {r.title}
+                </Text>
+              ))}
+            </Pressable>
+          </Link>
+        )}
 
         {data && data.areas.length === 0 && (
           <View className="items-center gap-3 py-16">

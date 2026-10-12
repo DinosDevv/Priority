@@ -24,6 +24,7 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: '#020617' },
       }}>
       <Tabs.Screen name="index" options={{ title: 'Log', tabBarIcon: icon('add-circle') }} />
+      <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon('calendar') }} />
       <Tabs.Screen name="week" options={{ title: 'Week', tabBarIcon: icon('stats-chart') }} />
       <Tabs.Screen name="areas" options={{ title: 'Areas', tabBarIcon: icon('grid') }} />
     </Tabs>

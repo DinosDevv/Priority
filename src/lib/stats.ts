@@ -62,6 +62,12 @@ function zonedMidnight(year: number, month: number, day: number, timeZone: strin
   return new Date(result);
 }
 
+/** Calendar day in `timeZone` as YYYY-MM-DD. */
+export function dayKey(date: Date, timeZone: string = TIME_ZONE): string {
+  const p = zonedParts(date, timeZone);
+  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+}
+
 /** Current week as [start, end): Monday 00:00 to next Monday 00:00 in `timeZone`. */
 export function weekBounds(now: Date, timeZone: string = TIME_ZONE): { start: Date; end: Date } {
   const p = zonedParts(now, timeZone);

@@ -23,6 +23,8 @@ interface Props {
   area: Area;
   /** When set, the sheet edits this log instead of creating one. */
   existing?: Log;
+  /** Pre-selected duration for a new log (e.g. a reminder's planned minutes). */
+  initialDuration?: number;
   initialEnergy: number;
   onClose: () => void;
   onSaved: (log: Log) => void;
@@ -36,12 +38,15 @@ function chip(active: boolean) {
   };
 }
 
-export function LogSheet({ area, existing, initialEnergy, onClose, onSaved, onDeleted }: Props) {
+export function LogSheet({ area, existing, initialDuration, initialEnergy, onClose, onSaved, onDeleted }: Props) {
   const insets = useSafeAreaInsets();
-  const isPreset = existing ? PRESETS.includes(existing.duration_min) : false;
-  const [preset, setPreset] = useState<number | null>(existing && isPreset ? existing.duration_min : null);
+  const startDuration = existing?.duration_min ?? initialDuration;
+  const isPreset = startDuration != null && PRESETS.includes(startDuration);
+  const [preset, setPreset] = useState<number | null>(startDuration != null && isPreset ? startDuration : null);
   // null = custom input hidden
-  const [custom, setCustom] = useState<string | null>(existing && !isPreset ? String(existing.duration_min) : null);
+  const [custom, setCustom] = useState<string | null>(
+    startDuration != null && !isPreset ? String(startDuration) : null,
+  );
   const [daysAgo, setDaysAgo] = useState(0);
   const [energy, setEnergy] = useState<number | null>(existing ? existing.energy : initialEnergy);
   const [note, setNote] = useState(existing?.note ?? '');
@@ -139,7 +144,7 @@ export function LogSheet({ area, existing, initialEnergy, onClose, onSaved, onDe
                 keyboardType="number-pad"
                 placeholder="Minutes"
                 placeholderTextColor="#64748b"
-                autoFocus={!existing}
+                autoFocus={startDuration == null}
                 maxLength={4}
                 className="h-12 rounded-xl bg-slate-800 px-4 text-base text-slate-100"
               />
